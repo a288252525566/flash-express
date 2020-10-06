@@ -18,7 +18,9 @@ exports.card_list = function(req, res) {
 
 
 
-// Display list of all Cards.
+
+
+// add card.
 exports.add_card = [
   validator.body('title', 'Empty title').isLength({ min: 1 }),
   function(req, res) {
@@ -28,7 +30,13 @@ exports.add_card = [
       res.send(errors);
       return;
     }
-    cardModel.create({ title:req.body.title }, function (err, card_instance) {
+    
+    const parent_id = req.body.parent_id?req.body.parent_id:null;
+    cardModel.create(
+      {
+        title:req.body.title,
+        parent_id:parent_id
+      }, function (err, card_instance) {
       if(err) handleError(err);
       // saved!
       res.send(card_instance);
