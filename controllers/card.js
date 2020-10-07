@@ -6,9 +6,9 @@ const handleError = error=>{
 
 // Display list of all Cards.
 exports.card_list = function(req, res) {
-
+  const parent_id = req.body.parent_id?req.body.parent_id:null;
   // find card
-  cardModel.find({}, (err, cards) => {
+  cardModel.find({parent_id:parent_id}, (err, cards) => {
     if (err) {
       return console.error(err);
     }
