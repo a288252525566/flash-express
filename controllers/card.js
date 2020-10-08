@@ -5,15 +5,10 @@ const handleError = error=>{
 }
 
 // Display list of all Cards.
-exports.findList = function(req, res) {
+exports.findList = async function(req, res) {
   const parent_id = req.body.parent_id?req.body.parent_id:null;
-  // find card
-  cardModel.find({parent_id:parent_id}, (err, cards) => {
-    if (err) {
-      return console.error(err);
-    }
-    res.send(cards);
-  });
+  const list = await cardModel.findList(parent_id);
+  res.send(list);
 }
 
 

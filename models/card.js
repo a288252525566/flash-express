@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+//設定Schema
 const cardSchema = new mongoose.Schema(
   {
     title: String,
@@ -9,10 +10,18 @@ const cardSchema = new mongoose.Schema(
   { collection: 'card'}
 );
 
-module.exports = mongoose.model('card', cardSchema);
+//產生modle
+const cardModel = mongoose.model('card', cardSchema);
 
-// var newcard = card.create({title:'new card!!'},function (err) {
-//   if (err) return handleError(err);
-//   console.log('saved!');
-//   // saved!
-// });
+//自訂model method
+cardModel.findList = async function(parent_id) {
+  const result = await cardModel.find({parent_id:parent_id}, (err, cards) => {
+    if (err) {
+      return console.error(err);
+    }
+    return cards;
+  });
+  return result;
+}
+
+module.exports = cardModel;
