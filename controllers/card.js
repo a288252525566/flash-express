@@ -5,7 +5,7 @@ const handleError = error=>{
 }
 
 // Display list of all Cards.
-exports.card_list = function(req, res) {
+exports.findList = function(req, res) {
   const parent_id = req.body.parent_id?req.body.parent_id:null;
   // find card
   cardModel.find({parent_id:parent_id}, (err, cards) => {
@@ -21,7 +21,7 @@ exports.card_list = function(req, res) {
 
 
 // add card.
-exports.add_card = [
+exports.add = [
   validator.body('title', 'Empty title').isLength({ min: 1 }),
   function(req, res) {
 
@@ -70,7 +70,7 @@ exports.add_card = [
 ];
 
 
-exports.remove_card = [
+exports.remove = [
   validator.body('_id', 'Empty id').isLength({ min: 1 }),
   function(req, res) {
     const errors = validator.validationResult(req);
@@ -89,7 +89,7 @@ exports.remove_card = [
 ];
 
 
-exports.update_card = [
+exports.update = [
   validator.body('_id', 'Empty id').isLength({ min: 1 }),
   function(req, res) {
     
