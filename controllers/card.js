@@ -11,7 +11,21 @@ exports.findList = async function(req, res) {
   res.send(list);
 }
 
-
+exports.findPath = [
+  validator.body('_id', 'Empty id').isLength({ min: 1 }),
+  function(req, res) {
+    //處理錯誤
+    const errors = validator.validationResult(req);
+    if(!errors.isEmpty()) {
+      res.send(errors);
+      return;
+    }
+    const pathPromise = cardModel.findPath(req.body._id);
+    pathPromise.then(path=>{
+      res.send(path);
+    })
+  }
+];
 
 
 
@@ -79,7 +93,7 @@ exports.update = [
       if(card_instance) res.send(card_instance);
       else res.send('id not found');
     };
-    
+
     cardModel.findByIdAndUpdate(req.body._id,req.body, callback);
   }
 ]
