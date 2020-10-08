@@ -19,48 +19,25 @@ exports.findList = async function(req, res) {
 exports.add = [
   validator.body('title', 'Empty title').isLength({ min: 1 }),
   function(req, res) {
-
+    //處理錯誤
     const errors = validator.validationResult(req);
     if(!errors.isEmpty()) {
       res.send(errors);
       return;
     }
     
+    //處理資料
     const parent_id = req.body.parent_id?req.body.parent_id:null;
-    cardModel.create(
-      {
-        title:req.body.title,
-        parent_id:parent_id
-      }, function (err, card_instance) {
+    const data = {title:req.body.title,parent_id:parent_id};
+    const callback = (err,card_instance) => {
       if(err) handleError(err);
       // saved!
       res.send(card_instance);
 
-      
-      /*
-      // Data from form is valid.
-      // Check if Genre with same name already exists.
-      Genre.findOne({ 'name': req.body.name })
-        .exec( function(err, found_genre) {
-           if (err) { return next(err); }
+    }
 
-           if (found_genre) {
-             // Genre exists, redirect to its detail page.
-             res.redirect(found_genre.url);
-           }
-           else {
-
-             genre.save(function (err) {
-               if (err) { return next(err); }
-               // Genre saved. Redirect to genre detail page.
-               res.redirect(genre.url);
-             });
-
-          }
-
-        });
-      */
-    });
+    //呼叫model
+    cardModel.create(data,callback);
   }
 ];
 
@@ -68,18 +45,20 @@ exports.add = [
 exports.remove = [
   validator.body('_id', 'Empty id').isLength({ min: 1 }),
   function(req, res) {
+    //處理錯誤
     const errors = validator.validationResult(req);
     if(!errors.isEmpty()) {
       res.send(errors);
       return;
     }
 
-    cardModel.findByIdAndRemove(req.body._id,null, function (err, card_instance) {
+    const callback = (err, card_instance) => {
       if(err) handleError(err);
-      // saved!
       if(card_instance) res.send(card_instance);
       else res.send('id not found');
-    });
+    };
+
+    cardModel.findByIdAndRemove(req.body._id,null,callback);
   }
 ];
 
@@ -87,18 +66,20 @@ exports.remove = [
 exports.update = [
   validator.body('_id', 'Empty id').isLength({ min: 1 }),
   function(req, res) {
-    
+    //處理錯誤
     const errors = validator.validationResult(req);
     if(!errors.isEmpty()) {
       res.send(errors);
       return;
     }
 
-    cardModel.findByIdAndUpdate(req.body._id,req.body, function (err, card_instance) {
+    const callback = (err, card_instance) => {
       if(err) handleError(err);
       // saved!
       if(card_instance) res.send(card_instance);
       else res.send('id not found');
-    });
+    };
+    
+    cardModel.findByIdAndUpdate(req.body._id,req.body, callback);
   }
 ]
