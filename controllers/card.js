@@ -56,25 +56,13 @@ exports.add = [
 ];
 
 
-exports.remove = [
-  validator.body('_id', 'Empty id').isLength({ min: 1 }),
-  function(req, res) {
-    //處理錯誤
-    const errors = validator.validationResult(req);
-    if(!errors.isEmpty()) {
-      res.send(errors);
-      return;
-    }
+exports.remove = function(req, res) {
+  cardModel.remove(req.body._id).then(result=>{
+    if(result) res.send({message:'success'});
+    else res.send({message:'faild'});
+  });
+}
 
-    const callback = (err, card_instance) => {
-      if(err) handleError(err);
-      if(card_instance) res.send(card_instance);
-      else res.send('id not found');
-    };
-
-    cardModel.findByIdAndRemove(req.body._id,null,callback);
-  }
-];
 
 
 exports.update = [
