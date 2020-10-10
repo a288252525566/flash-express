@@ -64,6 +64,13 @@ exports.remove = function(req, res) {
 }
 
 
+//移除已經完成的card
+exports.removeCompleted = function(req, res) {
+  cardModel.removeCompleted(req.body._id).then(v=>{
+    if(v) res.send({message:'success'});
+    else res.send({message:'faild'});
+  });
+};
 
 exports.update = [
   validator.body('_id', 'Empty id').isLength({ min: 1 }),

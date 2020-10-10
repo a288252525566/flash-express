@@ -127,4 +127,43 @@ cardModel.get = async function(_id){
   }
   return card;
 }
+
+/**
+ * 移除root底下所有完成的car
+ * 因為root底下的card沒有parent，所以沒有父節點可以做為移除卡片的依據，需要逐個找出root底下已經完成的card
+ * @param {mongoose.Types.ObjectId,null} node_id 將從傳入的id開始尋找已經完成的card，無傳入就從root開始找
+ * @return {boolean}
+ */
+cardModel.removeCompleted = async function(node_id) {
+  //如果有傳入id，但是是錯誤的id回傳刪除失敗
+  if(!!node_id && cardModel.get(node_id)===null) return false;
+
+
+  //找出要移除的卡片
+  const completedList = await cardModel.find(
+    {parent_id:(node_id?node_id:null),isDone:true},
+    (err, cards) => {
+      if (err) console.error(err);
+    }
+  );
+
+
+
+  //遞迴移除root的每個卡片，並回傳結果
+  let haveError = false;
+  let i = 0;
+  const recursion = async function() {
+    if(haveError || i>=completedList.length) return;
+    const removeResult = await cardModel.remove(completedList[i]._id);
+    if(!removeResult) haveError = true;
+    else {
+      i++;
+      recursion();
+    }
+  }
+  await recursion();
+  const result = !haveError;
+  return result;
+}
+
 module.exports = cardModel;

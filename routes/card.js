@@ -7,6 +7,7 @@ router.post('/list', card_controller.findList);
 router.post('/path', card_controller.findPath);
 router.post('/add', card_controller.add);
 router.post('/remove', card_controller.remove);
+router.post('/removecompleted', card_controller.removeCompleted);
 router.post('/update', card_controller.update);
 
 router.get('/*', function(req, res, next) {
