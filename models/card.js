@@ -110,4 +110,21 @@ cardModel.remove = async function(_id) {
   
   return result;
 }
+/**
+ * 回傳指定card
+ * @param {mongoose.Types.ObjectId} _id 
+ */
+cardModel.get = async function(_id){
+  if(!mongoose.Types.ObjectId.isValid(_id)) return null;
+
+  //檢查id是否存在
+  const card = (await cardModel.find({_id:_id}, (err, result) => {
+    if (err) console.error(err);
+  }))[0];
+
+  if(card._id && card._id.length<=0) {
+    return null;
+  }
+  return card;
+}
 module.exports = cardModel;
