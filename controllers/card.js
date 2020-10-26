@@ -6,7 +6,7 @@ const handleError = error=>{
 
 // Display list of all Cards.
 exports.findList = async function(req, res) {
-  const parent_id = req.body.parent_id?req.body.parent_id:null;
+  const parent_id = (!req.body.parent_id || req.body.parent_id==='root') ?null:req.body.parent_id;
   const list = await cardModel.findList(parent_id);
   res.send(list);
 }
@@ -41,7 +41,7 @@ exports.add = [
     }
     
     //處理資料
-    const parent_id = req.body.parent_id?req.body.parent_id:null;
+    const parent_id = (!req.body.parent_id || req.body.parent_id==='root') ?null:req.body.parent_id;
     const data = {title:req.body.title,parent_id:parent_id};
     const callback = (err,card_instance) => {
       if(err) handleError(err);
@@ -66,7 +66,8 @@ exports.remove = function(req, res) {
 
 //移除已經完成的card
 exports.removeCompleted = function(req, res) {
-  cardModel.removeCompleted(req.body._id).then(v=>{
+  const parent_id = (!req.body.parent_id || req.body.parent_id==='root') ?null:req.body.parent_id;
+  cardModel.removeCompleted(parent_id).then(v=>{
     if(v) res.send({message:'success'});
     else res.send({message:'faild'});
   });
