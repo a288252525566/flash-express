@@ -41,8 +41,10 @@ exports.add = [
     }
     
     //處理資料
+    const title = req.body.title;
     const parent_id = (!req.body.parent_id || req.body.parent_id==='root') ?null:req.body.parent_id;
-    const data = {title:req.body.title,parent_id:parent_id};
+    const content = req.body.content;
+    const data = {title,parent_id,content};
     const callback = (err,card_instance) => {
       if(err) handleError(err);
       // saved!
@@ -89,7 +91,11 @@ exports.update = [
       if(card_instance) res.send(card_instance);
       else res.send('id not found');
     };
+    const title = req.body.title;
+    const parent_id = (!req.body.parent_id || req.body.parent_id==='root') ?null:req.body.parent_id;
+    const content = req.body.content;
+    const data = {title,parent_id,content};
 
-    cardModel.findByIdAndUpdate(req.body._id,req.body, callback);
+    cardModel.findByIdAndUpdate(req.body._id,data, callback);
   }
 ]

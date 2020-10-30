@@ -5,7 +5,8 @@ const cardSchema = new mongoose.Schema(
   {
     title: String,
     isDone: {type:Boolean,default:false},
-    parent_id:{type:mongoose.Types.ObjectId,default:null}
+    parent_id:{type:mongoose.Types.ObjectId,default:null},
+    content:String
   },
   { collection: 'card'}
 );
