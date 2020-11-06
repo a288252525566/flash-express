@@ -1,51 +1,51 @@
 const mongoose = require('mongoose');
 
 //設定Schema
-const cardSchema = new mongoose.Schema(
+const todoSchema = new mongoose.Schema(
   {
     title: String,
     isDone: {type:Boolean,default:false},
     parent_id:{type:mongoose.Types.ObjectId,default:null},
     content:String
   },
-  { collection: 'card'}
+  { collection: 'todo'}
 );
 
 //產生modle
-const cardModel = mongoose.model('card', cardSchema);
+const todoModel = mongoose.model('todo', todoSchema);
 
 //自訂model method
-//回傳指定id下一層的card
-cardModel.findList = async function(parent_id) {
-  const result = await cardModel.find({parent_id:parent_id}, (err, cards) => {
+//回傳指定id下一層的todo
+todoModel.findList = async function(parent_id) {
+  const result = await todoModel.find({parent_id:parent_id}, (err, todos) => {
     if (err) {
       return console.error(err);
     }
-    return cards;
+    return todos;
   });
   return result;
 }
 
-//回傳card的路徑
-cardModel.findPath = async function (_id) {
+//回傳todo的路徑
+todoModel.findPath = async function (_id) {
   
   //驗證id
   if(!mongoose.Types.ObjectId.isValid(_id)) return 'wrong id';
 
   //檢查id是否存在
-  const card = (await cardModel.find({_id:_id}, (err, result) => {
+  const todo = (await todoModel.find({_id:_id}, (err, result) => {
     if (err) console.error(err);
   }))[0];
-  if(card._id && card._id.length<=0) {
+  if(todo._id && todo._id.length<=0) {
     return 'id not found';
   }
 
   //找到path
-  const cursor = cardModel.aggregate( [
+  const cursor = todoModel.aggregate( [
     { $match: { "_id": mongoose.Types.ObjectId(_id) } },
     {
       $graphLookup: {
-          from: "card",
+          from: "todo",
           startWith: "$parent_id",
           connectFromField: "parent_id",
           connectToField: "_id",
@@ -58,32 +58,32 @@ cardModel.findPath = async function (_id) {
     searchResult = doc.path;
   });
 
-  if(typeof(searchResult.forEach)==='function') return [card,...searchResult].reverse();
+  if(typeof(searchResult.forEach)==='function') return [todo,...searchResult].reverse();
   else return searchResult;
 }
 
 /**
- * 移除card及以下的節點
+ * 移除todo及以下的節點
  * @return {boolean}
  */
-cardModel.remove = async function(_id) {
+todoModel.remove = async function(_id) {
   //驗證id
   if(!mongoose.Types.ObjectId.isValid(_id)) return false;
 
   //檢查id是否存在
-  const card = (await cardModel.find({_id:_id}, (err, result) => {
+  const todo = (await todoModel.find({_id:_id}, (err, result) => {
     if (err) console.error(err);
   }))[0];
-  if(card._id && card._id.length<=0) {
+  if(todo._id && todo._id.length<=0) {
     return false;
   }
 
   //找出chldren
-  const cursor = cardModel.aggregate( [
+  const cursor = todoModel.aggregate( [
     { $match: { "_id": mongoose.Types.ObjectId(_id) } },
     {
       $graphLookup: {
-          from: "card",
+          from: "todo",
           startWith: "$_id",
           connectFromField: "_id",
           connectToField: "parent_id",
@@ -96,54 +96,54 @@ cardModel.remove = async function(_id) {
     children = doc.children;
   });
   
-  //刪除card
+  //刪除todo
   const idArray = [
     _id,
-    ...children.map(card=>{
-      return card._id;
+    ...children.map(todo=>{
+      return todo._id;
     })];
   let result;
-  const callback = (err, card_instance) => {
+  const callback = (err, todo_instance) => {
     if(err) result = false;
     else result = true;
   };
-  await cardModel.deleteMany({_id:{$in:idArray}},null,callback);
+  await todoModel.deleteMany({_id:{$in:idArray}},null,callback);
   
   return result;
 }
 /**
- * 回傳指定card
+ * 回傳指定todo
  * @param {mongoose.Types.ObjectId} _id 
  */
-cardModel.get = async function(_id){
+todoModel.get = async function(_id){
   if(!mongoose.Types.ObjectId.isValid(_id)) return null;
 
   //檢查id是否存在
-  const card = (await cardModel.find({_id:_id}, (err, result) => {
+  const todo = (await todoModel.find({_id:_id}, (err, result) => {
     if (err) console.error(err);
   }))[0];
 
-  if(card._id && card._id.length<=0) {
+  if(todo._id && todo._id.length<=0) {
     return null;
   }
-  return card;
+  return todo;
 }
 
 /**
  * 移除root底下所有完成的car
- * 因為root底下的card沒有parent，所以沒有父節點可以做為移除卡片的依據，需要逐個找出root底下已經完成的card
- * @param {mongoose.Types.ObjectId,null} node_id 將從傳入的id開始尋找已經完成的card，無傳入就從root開始找
+ * 因為root底下的todo沒有parent，所以沒有父節點可以做為移除卡片的依據，需要逐個找出root底下已經完成的todo
+ * @param {mongoose.Types.ObjectId,null} node_id 將從傳入的id開始尋找已經完成的todo，無傳入就從root開始找
  * @return {boolean}
  */
-cardModel.removeCompleted = async function(node_id) {
+todoModel.removeCompleted = async function(node_id) {
   //如果有傳入id，但是是錯誤的id回傳刪除失敗
-  if(!!node_id && cardModel.get(node_id)===null) return false;
+  if(!!node_id && todoModel.get(node_id)===null) return false;
 
 
   //找出要移除的卡片
-  const completedList = await cardModel.find(
+  const completedList = await todoModel.find(
     {parent_id:(node_id?node_id:null),isDone:true},
-    (err, cards) => {
+    (err, todos) => {
       if (err) console.error(err);
     }
   );
@@ -155,7 +155,7 @@ cardModel.removeCompleted = async function(node_id) {
   let i = 0;
   const recursion = async function() {
     if(haveError || i>=completedList.length) return;
-    const removeResult = await cardModel.remove(completedList[i]._id);
+    const removeResult = await todoModel.remove(completedList[i]._id);
     if(!removeResult) haveError = true;
     else {
       i++;
@@ -167,4 +167,4 @@ cardModel.removeCompleted = async function(node_id) {
   return result;
 }
 
-module.exports = cardModel;
+module.exports = todoModel;
