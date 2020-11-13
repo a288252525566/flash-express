@@ -53,13 +53,23 @@ todoModel.findPath = async function (_id) {
       }
     }
   ] ).cursor({ batchSize: 1000 }).exec();
-  let searchResult;
-  await cursor.eachAsync(function(doc, i) {
-    searchResult = doc.path;
+  let path;
+  await cursor.eachAsync(function(doc) {
+    path = doc.path;
   });
-
-  if(typeof(searchResult.forEach)==='function') return [todo,...searchResult].reverse();
-  else return searchResult;
+  //只有一個結果，沒有array
+  // console.log(path);
+  if(typeof(path.forEach)!=='function') return path;
+  //照parent_id排序
+  let result = [];
+  const sortResult = (todo)=>{
+    result.unshift(todo);
+    if(!!!todo.parent_id) return;
+    const next = path.find(value=>(value._id.toString()===todo.parent_id.toString()));
+    if(next) sortResult(next);
+  }
+  sortResult(todo);
+  return result;
 }
 
 /**
