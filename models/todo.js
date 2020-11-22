@@ -238,10 +238,4 @@ todoModel.removeCompleted = async function(node_id) {
   return result;
 }
 
-todoModel.create = function (data,callback) {
-  return rawModel.create(data,callback);
-}
-todoModel.findByIdAndUpdate = function (id,data,callback) {
-  return rawModel.findByIdAndUpdate(id,data,callback);
-}
 module.exports = todoModel;

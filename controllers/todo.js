@@ -42,15 +42,11 @@ exports.add = [
     }
     
     const data = getDateFromBody(req);
-    const callback = (err,todo_instance) => {
-      if(err) handleError(err);
-      // saved!
-      res.send(todo_instance);
-
-    }
 
     //呼叫model
-    todoModel.create(data,callback);
+    todoModel.add(data).then(promise=>{
+      res.send(promise);
+    });
   }
 ];
 
@@ -90,6 +86,8 @@ exports.update = [
     };
     const data = getDateFromBody(req);
 
-    todoModel.findByIdAndUpdate(req.body._id,data, callback);
+    todoModel.update(req.body._id,data).then(promise=>{
+      res.send(promise);
+    });
   }
 ]

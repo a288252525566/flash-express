@@ -3,11 +3,13 @@ module.exports.getDateFromBody = request => {
   const isDone = request.body.isDone;
   const parent_id = request.body.parent_id!==undefined && (request.body.parent_id==='' || request.body.parent_id==='root') ? null:request.body.parent_id;
   const content = request.body.content;
+  const order = request.body.order;
   const data = {
     ...(title!==undefined && {title}),
     ...(isDone!==undefined && {isDone}),
     ...(parent_id!==undefined && {parent_id}),
     ...(content!==undefined && {content}),
+    ...(order!==undefined && {order}),
   }
   return data;
 }
