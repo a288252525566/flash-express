@@ -12,12 +12,13 @@ const todoSchema = new mongoose.Schema(
 );
 
 //產生modle
-const todoModel = mongoose.model('todo', todoSchema);
+const rawModel = mongoose.model('todo', todoSchema);
+const todoModel = {};
 
 //自訂model method
 //回傳指定id下一層的todo
 todoModel.findList = async function(parent_id) {
-  const result = await todoModel.find({parent_id:parent_id}, (err, todos) => {
+  const result = await rawModel.find({parent_id:parent_id}, (err, todos) => {
     if (err) {
       return console.error(err);
     }
@@ -33,7 +34,7 @@ todoModel.findPath = async function (_id) {
   if(!mongoose.Types.ObjectId.isValid(_id)) return 'wrong id';
 
   //檢查id是否存在
-  const todo = (await todoModel.find({_id:_id}, (err, result) => {
+  const todo = (await rawModel.find({_id:_id}, (err, result) => {
     if (err) console.error(err);
   }))[0];
   if(todo._id && todo._id.length<=0) {
@@ -41,7 +42,7 @@ todoModel.findPath = async function (_id) {
   }
 
   //找到path
-  const cursor = todoModel.aggregate( [
+  const cursor = rawModel.aggregate( [
     { $match: { "_id": mongoose.Types.ObjectId(_id) } },
     {
       $graphLookup: {
@@ -58,7 +59,6 @@ todoModel.findPath = async function (_id) {
     path = doc.path;
   });
   //只有一個結果，沒有array
-  // console.log(path);
   if(typeof(path.forEach)!=='function') return path;
   //照parent_id排序
   let result = [];
@@ -81,7 +81,7 @@ todoModel.remove = async function(_id) {
   if(!mongoose.Types.ObjectId.isValid(_id)) return false;
 
   //檢查id是否存在
-  const todo = (await todoModel.find({_id:_id}, (err, result) => {
+  const todo = (await rawModel.find({_id:_id}, (err, result) => {
     if (err) console.error(err);
   }))[0];
   if(todo._id && todo._id.length<=0) {
@@ -89,7 +89,7 @@ todoModel.remove = async function(_id) {
   }
 
   //找出chldren
-  const cursor = todoModel.aggregate( [
+  const cursor = rawModel.aggregate( [
     { $match: { "_id": mongoose.Types.ObjectId(_id) } },
     {
       $graphLookup: {
@@ -117,7 +117,7 @@ todoModel.remove = async function(_id) {
     if(err) result = false;
     else result = true;
   };
-  await todoModel.deleteMany({_id:{$in:idArray}},null,callback);
+  await rawModel.deleteMany({_id:{$in:idArray}},null,callback);
   
   return result;
 }
@@ -129,7 +129,7 @@ todoModel.get = async function(_id){
   if(!mongoose.Types.ObjectId.isValid(_id)) return null;
 
   //檢查id是否存在
-  const todo = (await todoModel.find({_id:_id}, (err, result) => {
+  const todo = (await rawModel.find({_id:_id}, (err, result) => {
     if (err) console.error(err);
   }))[0];
 
@@ -147,11 +147,11 @@ todoModel.get = async function(_id){
  */
 todoModel.removeCompleted = async function(node_id) {
   //如果有傳入id，但是是錯誤的id回傳刪除失敗
-  if(!!node_id && todoModel.get(node_id)===null) return false;
+  if(!!node_id && rawModel.get(node_id)===null) return false;
 
 
   //找出要移除的卡片
-  const completedList = await todoModel.find(
+  const completedList = await rawModel.find(
     {parent_id:(node_id?node_id:null),isDone:true},
     (err, todos) => {
       if (err) console.error(err);
@@ -165,7 +165,7 @@ todoModel.removeCompleted = async function(node_id) {
   let i = 0;
   const recursion = async function() {
     if(haveError || i>=completedList.length) return;
-    const removeResult = await todoModel.remove(completedList[i]._id);
+    const removeResult = await rawModel.remove(completedList[i]._id);
     if(!removeResult) haveError = true;
     else {
       i++;
@@ -177,4 +177,10 @@ todoModel.removeCompleted = async function(node_id) {
   return result;
 }
 
+todoModel.create = function (data,callback) {
+  return rawModel.create(data,callback);
+}
+todoModel.findByIdAndUpdate = function (id,data,callback) {
+  return rawModel.findByIdAndUpdate(id,data,callback);
+}
 module.exports = todoModel;
