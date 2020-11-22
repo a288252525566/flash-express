@@ -6,6 +6,7 @@ const todoSchema = new mongoose.Schema(
     title: String,
     isDone: {type:Boolean,default:false},
     parent_id:{type:mongoose.Types.ObjectId,default:null},
+    order:{type:Number},
     content:String
   },
   { collection: 'todo'}
@@ -14,6 +15,66 @@ const todoSchema = new mongoose.Schema(
 //產生modle
 const rawModel = mongoose.model('todo', todoSchema);
 const todoModel = {};
+
+/**
+ *1.去除重複的order
+ *2.消除order的間隔
+ */
+const reOrderList = async (node_id, anchor_id) => {
+  //如果無輸入anchor_id，list===originalList
+  //否則返回一個theItem在正確位置上的新list
+  const list = await (async ()=>{
+    const originalList = await todoModel.findList(node_id);
+    if(!!!anchor_id) return originalList;
+
+    const result = [...originalList];
+    const theItemIndex = result.findIndex(item=>(item._id.toString()===anchor_id.toString()));
+    const theItem = result[theItemIndex];
+
+    result.splice(theItemIndex,1);
+    result.splice((theItem.order-1),0,theItem);
+    return result;
+  })();
+  
+  
+  
+  //找出需要reOrder的 items
+  const newOrderArray = [];
+  list.forEach((item,index)=>{
+    const expectOrder = index+1;
+    if(item.order != expectOrder) newOrderArray[index] = expectOrder;
+  });
+  //update new order
+  newOrderArray.forEach((newOrder,index)=>{
+    rawModel.findByIdAndUpdate(list[index]._id,{order:newOrder});
+  });
+  return true;
+}
+
+//新增
+todoModel.add = async function(data) {
+  const list = await todoModel.findList(data.parent_id);
+  const newData = !!data.order ? data : {...data , order:(list.length+1)};
+  const result = await rawModel.create(newData);
+  if(!!data.order) reOrderList(data.parent_id, result._id);
+  return result;
+}
+
+/**
+ * 更新
+ * 如果沒有設定order或order沒有變化，直接回傳結果
+ * 否則需要更新整個list的order
+ */
+todoModel.update = async function(_id,data) {
+  const result = rawModel.findByIdAndUpdate(_id,data,{new:true});
+  if(!!!data.order) return result;
+
+  const theItem = todoModel.get(_id);
+  if(theItem.order != data.order) reOrderList(theItem.parent_id, _id);
+  return result;
+}
+
+
 
 //自訂model method
 //回傳指定id下一層的todo
@@ -24,7 +85,7 @@ todoModel.findList = async function(parent_id) {
     }
     return todos;
   });
-  return result;
+  return result.sort((a,b)=>(a.order-b.order));
 }
 
 //回傳todo的路徑
