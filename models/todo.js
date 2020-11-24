@@ -46,7 +46,7 @@ const reOrderList = async (node_id, anchor_id) => {
   });
   //update new order
   newOrderArray.forEach((newOrder,index)=>{
-    rawModel.findByIdAndUpdate(list[index]._id,{order:newOrder});
+    rawModel.findByIdAndUpdate(list[index]._id,{order:newOrder}).then();
   });
   return true;
 }
@@ -66,11 +66,11 @@ todoModel.add = async function(data) {
  * 否則需要更新整個list的order
  */
 todoModel.update = async function(_id,data) {
-  const result = rawModel.findByIdAndUpdate(_id,data,{new:true});
+  const theItem = await todoModel.get(_id);
+  const result = await rawModel.findByIdAndUpdate(_id,data,{new:true});
   if(!!!data.order) return result;
-
-  const theItem = todoModel.get(_id);
-  if(theItem.order != data.order) reOrderList(theItem.parent_id, _id);
+  if(theItem.order.toString() !== data.order.toString()) reOrderList(theItem.parent_id, _id);
+  if(theItem.parent_id!==result.parent_id && theItem.parent_id.toString() !== result.parent_id.toString()) reOrderList(theItem.parent_id, _id);
   return result;
 }
 
