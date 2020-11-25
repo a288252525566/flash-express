@@ -226,7 +226,7 @@ todoModel.removeCompleted = async function(node_id) {
   let i = 0;
   const recursion = async function() {
     if(haveError || i>=completedList.length) return;
-    const removeResult = await rawModel.remove(completedList[i]._id);
+    const removeResult = await todoModel.remove(completedList[i]._id);
     if(!removeResult) haveError = true;
     else {
       i++;
