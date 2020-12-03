@@ -14,7 +14,7 @@ const todoRouter = require('./routes/todo');
 const app = express();
 
 //cors
-const allowedOrigins = ["http://localhost:3000","http://localhost:3001"];
+const allowedOrigins = ["http://localhost:3000","http://localhost:3001",process.env.HOST];
 app.use(
   cors({
     origin: function(origin, callback) {
